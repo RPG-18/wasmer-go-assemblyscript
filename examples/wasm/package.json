@@ -1,0 +1,16 @@
+{
+  "name": "wasm",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node tests",
+    "asbuild:untouched": "asc index.ts --target debug --runtime stub --use abort=",
+    "asbuild:optimized": "asc index.ts --target release --runtime stub --use abort=",
+    "asbuild": "npm run asbuild:untouched && npm run asbuild:optimized"
+  },
+  "dependencies": {
+    "@assemblyscript/loader": "^0.17.13"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.17.13"
+  }
+}
