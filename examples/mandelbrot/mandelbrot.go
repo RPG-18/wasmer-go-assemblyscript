@@ -64,22 +64,22 @@ func min(a, b uint32) uint32 {
 	return b
 }
 
-func minl(a, b float64) float64 {
+func fmin(a, b float64) float64 {
 	if a < b {
 		return a
 	}
 	return b
 }
 
-func maxl(a, b float64) float64 {
+func fmax(a, b float64) float64 {
 	if a > b {
 		return a
 	}
 	return b
 }
 
-func claml(value, minValue, maxValue float64) float64 {
-	return minl(maxl(value, minValue), maxValue)
+func fclam(value, minValue, maxValue float64) float64 {
+	return fmin(fmax(value, minValue), maxValue)
 }
 
 //go:noinline
@@ -124,7 +124,7 @@ func Naive(width, height, limit uint32, out []byte) {
 			distanceSq := ix*ix + iy*iy
 			if distanceSq > 1.0 {
 				fraction := math.Log2(0.5 * math.Log(distanceSq))
-				colorIndex = uint16((NumColors - 1) * claml((float64(iteration)+1-fraction)*invLimit, 0.0, 1.0))
+				colorIndex = uint16((NumColors - 1) * fclam((float64(iteration)+1-fraction)*invLimit, 0.0, 1.0))
 			}
 			offset := yOffset + (x << 1)
 			out[offset] = byte(colorIndex & 0xFFFF)

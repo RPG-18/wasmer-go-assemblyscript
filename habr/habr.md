@@ -1,11 +1,11 @@
 # Запускаем AssemblyScript в Go
-Пока одни обсуждают [что не так с WebAssembly](https://habr.com/ru/company/ruvds/blog/539100/), я думаю как его можно
-использовать вне браузера. Например написание [wasm фильтров](https://www.envoyproxy.io/docs/envoy/v1.17.0/configuration/http/http_filters/wasm_filter#config-http-filters-wasm) для Envoy.
-AssemblyScript был взят потому, что это не C++ и не Rust, т.е. ожидается более низкий порог вхождения. Под катом будет дико примитивный
-код и пару бенчмарков.
+Пока одни обсуждают [что не так с WebAssembly](https://habr.com/ru/company/ruvds/blog/539100/), я думаю как его можно использовать вне браузера.
+Например написание [wasm фильтров](https://www.envoyproxy.io/docs/envoy/v1.17.0/configuration/http/http_filters/wasm_filter#config-http-filters-wasm) для Envoy.
+AssemblyScript был взят потому, что это не C++ и не Rust, т.е. ожидается более низкий порог вхождения. Под катом будет
+дико примитивный код и пару бенчмарков. Картинка взята из бенчмарка.
+![gray mandelbrot](../mandelbrot-g16.png)
 
 ## Рантаймы доступные для Go
-
 Более менее живые проекты которые имеют биндинги, для Go:
 * [wasmer-go](https://github.com/wasmerio/wasmer-go);
 * [wasmtime-go](https://pkg.go.dev/github.com/bytecodealliance/wasmtime-go);
@@ -13,12 +13,10 @@ AssemblyScript был взят потому, что это не C++ и не Rust
 
 Изначально пробовал запустить [life](https://github.com/perlin-network/life), но столкнувшись с двумя
 багами в life и последним коммит от 2019 понял, что проект мертв. Повелся из-за возможности указать лимит на
-количество операций([gas metering](https://godoc.org/github.com/perlin-network/life/exec#VirtualMachine.RunWithGasLimit)). Взял
-wasmer-go потому что он был первым в моём списке. Если вы читали [Wasmer: самая быстрая Go-библиотека для выполнения WebAssembly-кода](https://habr.com/ru/company/ruvds/blog/454518/),
-то API естественно поменялось.
+количество операций([gas metering](https://godoc.org/github.com/perlin-network/life/exec#VirtualMachine.RunWithGasLimit)). 
+В wasmer [metering](https://docs.wasmer.io/ecosystem/wasmer/wasmer-features), но в wasmer-go пока недоступно.
 
 ## Hello World!
-
 Если посмотреть примеры, то типичный hello world это:
 ```rust
 extern {
@@ -30,7 +28,7 @@ pub extern fn add1(x: i32, y: i32) -> i32 {
     unsafe { sum(x, y) + 1 }
 }
 ```
-Потому что строк в MVP не завезли. Нам доступны только числовые типы [i32, i64, f32, f64](https://webassembly.github.io/spec/core/text/types.html).
+Что делать, строк в MVP не завезли. Нам доступны только числовые типы [i32, i64, f32, f64](https://webassembly.github.io/spec/core/text/types.html).
 Посмотрим во что превратится этот код:
 ```typescript
 import {console} from "../../assemblyscript/go";
@@ -200,7 +198,6 @@ Hello World!call duration 4.77µs
 Первый вызов очень дорогой, все последующие немного, но дешевле. 
 
 ## Передача Go строк в AS
-
 Одних числовых типов недостаточно. Посмотрим как можно передать строки. В зависимости от [рантайма](https://www.assemblyscript.org/runtime.html) AS.
 
 | Variant | Description |
@@ -267,7 +264,6 @@ export namespace Go {
     }
 }
 ```
-
 Итого:
 ```go
 	handler, err := instance.Exports.GetRawFunction("say")
@@ -307,7 +303,6 @@ Calling `say` function...
 ```
 
 ## Стоимость вызова
-
 Попробуем оценить стоимость вызова функции. Для сравнения взял:
 ```typescript
 export function empty(): void {
@@ -337,7 +332,6 @@ BenchmarkEmptyCFunction-12    	36840853	        31.8 ns/op
 ```
 
 ## 2048 оттенков серого
-
 ![gray mandelbrot](../mandelbrot-g16.png)
 Нужна была CPU Bound задача, что бы время выполнения перекрывала стоимость вызова. Взял пример с [сайта AS](https://www.assemblyscript.org/examples/mandelbrot.html#example)
 и запустил генерацию изображения 1920x1080.
@@ -407,24 +401,23 @@ func min(a, b uint32) uint32 {
 	return b
 }
 
-func minl(a, b float64) float64 {
-	if a < b {
-		return a
-	}
-	return b
+func fmin(a, b float64) float64 {
+    if a < b {
+        return a
+    }
+    return b
 }
 
-func maxl(a, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
+func fmax(a, b float64) float64 {
+    if a > b {
+        return a
+    }
+    return b
 }
 
-func claml(value, minValue, maxValue float64) float64 {
-	return minl(maxl(value, minValue), maxValue)
+func fclam(value, minValue, maxValue float64) float64 {
+    return fmin(fmax(value, minValue), maxValue)
 }
-
 //go:noinline
 func Naive(width, height, limit uint32, out []byte) {
 	translateX := float64(width) * (1.0 / 1.6)
@@ -467,7 +460,7 @@ func Naive(width, height, limit uint32, out []byte) {
 			distanceSq := ix*ix + iy*iy
 			if distanceSq > 1.0 {
 				fraction := math.Log2(0.5 * math.Log(distanceSq))
-				colorIndex = uint16((NumColors - 1) * claml((float64(iteration)+1-fraction)*invLimit, 0.0, 1.0))
+				colorIndex = uint16((NumColors - 1) * fclam((float64(iteration)+1-fraction)*invLimit, 0.0, 1.0))
 			}
 			offset := yOffset + (x << 1)
 			out[offset] = byte(colorIndex & 0xFFFF)
@@ -495,8 +488,7 @@ BenchmarkAssembly-12    	       8	 136263914 ns/op
 в [wasmer](https://medium.com/wasmer/webassembly-and-simd-13badb9bf1a8), [v8](https://v8.dev/features/simd) и в некоторых других рантаймах.
 В самом AS то же можно [воспользоваться](https://www.assemblyscript.org/environment.html#low-level-webassembly-operations).
 
-## Работает, но есть "баги"
-
+## Работает, но есть баги
 Может бага, а может by design. При попытке сделать простой cancellation token, вылезла паника:
 ```go
 	go func() {
@@ -550,9 +542,9 @@ main.main()
 
 Process finished with exit code 2
 ```
-Вот была хост функция и вот её не стало. По поведению где-то поработал сборщик мусора. Быстрым просмотром кода был найден это момент:
+Вот была хост функция и вот её не стало... По поведению где-то поработал сборщик мусора. Быстрым просмотром кода был найден это момент:
 ![release pointer on function](release_pointer_on_function.png)
-Спишем на бету версию, чиниться добавлением KeepAlive:  
+Действительно отрабатывает GC и запускает финалайзер. Спишем на бету версию, чиниться добавлением KeepAlive:  
 ```go
 	_, err = infinityLoop()
 	if err != nil {
@@ -562,7 +554,6 @@ Process finished with exit code 2
 ```
 
 ## Итоги
-
 Какое применение можно найти за пределами блокчейн, edge computing:
 * можно посмотреть, когда нужен скриптовой движок;
 * система расширений, т.е. пойти путём Envoy. Удобно никаких тебе dll/so.
