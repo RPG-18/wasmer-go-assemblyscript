@@ -11,7 +11,7 @@
       "binaryFile": "optimized.wasm",
       "textFile": "optimized.wat",
       "optimizeLevel": 3,
-      "shrinkLevel": 1,
+      "shrinkLevel": 0,
       "converge": false,
       "noAssert": false,
       "memoryBase": 4147200
