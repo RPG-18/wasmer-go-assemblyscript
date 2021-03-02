@@ -557,3 +557,22 @@ Process finished with exit code 2
 Какое применение можно найти за пределами блокчейн, edge computing:
 * можно посмотреть, когда нужен скриптовой движок;
 * система расширений, т.е. пойти путём Envoy. Удобно никаких тебе dll/so.
+
+## UPD
+
+[Max Graey](https://github.com/MaxGraey) предложил установить параметр shrinkLevel в 0, это улучшило скорость 
+вычисления логарифма.
+
+Стандартный компилятор
+```
+go test -bench=.
+BenchmarkNaive-12       	       7	 144082544 ns/op
+BenchmarkAssembly-12    	      10	 108193154 ns/op
+```
+
+GCCGO:
+```
+$ go test -compiler=gccgo -gccgoflags='-O3 -march=native' -bench=.
+BenchmarkNaive-12       	       9	 114458135 ns/op
+BenchmarkAssembly-12    	      10	 107687709 ns/op
+```

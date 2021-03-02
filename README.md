@@ -19,8 +19,8 @@ BenchmarkEmptyCFunction-12    	37699389	        31.8 ns/op
 Benchmark calculate mandlebrot(1920x1080) 
 ![mandelbrot](mandelbrot-g16.png)
 ```
-BenchmarkNaive-12       	       7	 144191190 ns/op	     306 B/op	       0 allocs/op
-BenchmarkAssembly-12    	       8	 132451075 ns/op	     458 B/op	      16 allocs/op
+BenchmarkNaive-12       	       7	 143673741 ns/op	       0 B/op	       0 allocs/op
+BenchmarkAssembly-12    	      10	 107469368 ns/op	     457 B/op	      16 allocs/op
 ```
 
 GCCGO on Ryzen 3600
@@ -29,6 +29,6 @@ $ go test -compiler=gccgo -gccgoflags='-O3 -march=native' -bench=.
 goos: linux
 goarch: amd64
 pkg: wasmer-go-assemblyscript/examples/mandelbrot
-BenchmarkNaive-12       	       9	 114016512 ns/op
-BenchmarkAssembly-12    	       8	 132083165 ns/op
+BenchmarkNaive-12       	       9	 114458135 ns/op
+BenchmarkAssembly-12    	      10	 107687709 ns/op
 ```
